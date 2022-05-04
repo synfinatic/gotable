@@ -88,6 +88,21 @@ func GenerateTable(tables []TableStruct, fields []string) error {
 	return nil
 }
 
+// Generates a CSV output instead of a table- no header
+func GenerateCSV(tables []TableStruct, fields []string) error {
+	table := []map[string]string{}
+	for _, item := range tables {
+		row, _, err := TableRow(item)
+		if err != nil {
+			return err
+		}
+		table = append(table, row)
+	}
+
+	generateCSV(table, fields)
+	return nil
+}
+
 func generateTable(data []map[string]string, fieldMap map[string]string, fields []string) {
 	table := [][]string{}
 	colWidth := make([]int, len(fields))
@@ -128,6 +143,23 @@ func generateTable(data []map[string]string, fieldMap map[string]string, fields 
 	fmt.Printf("%s%s\n", headerLine, strings.Repeat("=", len(headerLine)-1))
 
 	// print each row
+	for _, row := range data {
+		values := make([]interface{}, len(fields))
+		for i, field := range fields {
+			values[i] = row[field]
+		}
+		fmt.Printf(fstring, values...)
+	}
+}
+
+func generateCSV(data []map[string]string, fields []string) {
+	fStr := make([]string, len(fields))
+	for i, _ := range fields {
+		fStr[i] = "%s"
+	}
+
+	fstring := fmt.Sprintf("%s\n", strings.Join(fStr, ","))
+
 	for _, row := range data {
 		values := make([]interface{}, len(fields))
 		for i, field := range fields {
