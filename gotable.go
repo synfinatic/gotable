@@ -18,7 +18,9 @@ package gotable
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 import (
+	"encoding/csv"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -152,21 +154,26 @@ func generateTable(data []map[string]string, fieldMap map[string]string, fields 
 	}
 }
 
-func generateCSV(data []map[string]string, fields []string) {
+func generateCSV(data []map[string]string, fields []string) error {
+	var err error
 	fStr := make([]string, len(fields))
 	for i, _ := range fields {
 		fStr[i] = "%s"
 	}
 
-	fstring := fmt.Sprintf("%s\n", strings.Join(fStr, ","))
+	w := csv.NewWriter(os.Stdout)
+	defer w.Flush()
 
 	for _, row := range data {
-		values := make([]interface{}, len(fields))
+		values := make([]string, len(fields))
 		for i, field := range fields {
 			values[i] = row[field]
 		}
-		fmt.Printf(fstring, values...)
+		if err = w.Write(values); err != nil {
+			return err
+		}
 	}
+	return err
 }
 
 func GetHeaderTag(v reflect.Value, fieldName string) (string, error) {
